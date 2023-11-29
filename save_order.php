@@ -8,20 +8,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $product_id = $_POST['product_id'];
         $quantity = $_POST['quantity'];
 
-        // Use a prepared statement to prevent SQL injection
-        $stmt = $conn->prepare("INSERT INTO orders(userid, product_id, quantity) VALUES (?, ?, ?)");
-        $stmt->bind_param("sii", $userid, $product_id, $quantity);
+        // Check if a record already exists for the user and product
+        $existingStmt = $conn->prepare("SELECT * FROM orders WHERE userid = ? AND product_id = ?");
+        $existingStmt->bind_param("si", $userid, $product_id);
+        $existingStmt->execute();
+        $existingResult = $existingStmt->get_result();
 
-        // Execute the statement
-        if ($stmt->execute()) {
-            // Return a success response
-            echo json_encode(["success" => true]);
+        if ($existingResult->num_rows > 0) {
+            // If the record exists, update the quantity
+            $updateStmt = $conn->prepare("UPDATE orders SET quantity = quantity + ? WHERE userid = ? AND product_id = ?");
+            $updateStmt->bind_param("isi", $quantity, $userid, $product_id);
+
+            if ($updateStmt->execute()) {
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["success" => false, "error" => "Failed to update quantity"]);
+            }
+
+            $updateStmt->close();
         } else {
-            // Return an error response
-            echo json_encode(["success" => false, "error" => "Failed to save order"]);
+            // If the record does not exist, insert a new record
+            $insertStmt = $conn->prepare("INSERT INTO orders(userid, product_id, quantity) VALUES (?, ?, ?)");
+            $insertStmt->bind_param("sii", $userid, $product_id, $quantity);
+
+            if ($insertStmt->execute()) {
+                echo json_encode(["success" => true]);
+            } else {
+                echo json_encode(["success" => false, "error" => "Failed to save order"]);
+            }
+
+            $insertStmt->close();
         }
 
-        $stmt->close();
+        $existingStmt->close();
     } else {
         // Return an error response if userid, product_id, or quantity is not set
         echo json_encode(["success" => false, "error" => "Invalid request"]);

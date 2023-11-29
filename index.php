@@ -11,7 +11,7 @@ if (isset($_GET["logout"])) {
 
 // 로그인 여부 확인
 if (isset($_SESSION["userid"])) {
-    $welcome_message = "안녕하세요, {$_SESSION["userid"]}님!";
+    $welcome_message = "{$_SESSION["userid"]}님!";
     $button_label = "로그아웃";
     $button_action = "index.php?logout=1"; // 로그아웃 처리 링크
 } else {
@@ -39,10 +39,10 @@ $result = $conn->query($sql);
     <ul>
         <li><a href="#">홈</a></li>
         <li><a href="#">서비스</a></li>
-        <li><a href="#">장바구니</a></li>
         <?php if (isset($_SESSION["userid"])) { ?>
             <li><a href="<?php echo $button_action; ?>"><?php echo $button_label; ?></a></li>
             <li><?php echo $welcome_message; ?></li>
+            <li><a href="orderlist.php">장바구니</a></li>
         <?php } else { ?>
             <li><a href="signup.php">회원가입</a></li>
             <li><a href="login.php">로그인</a></li>
@@ -100,7 +100,7 @@ $result = $conn->query($sql);
             echo "<td>{$row['stock_quantity']}</td>";
             echo "<td>{$row['category_name']}</td>";
             echo "<td><input type='number' id='quantity{$row['product_id']}' value='1' min='1'></td>"; // Quantity input
-            echo "<td><a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>주문하기</a></td>";
+            echo "<td><a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>장바구니담기</a></td>";
             echo "</tr>";
         }
         ?>
