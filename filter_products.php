@@ -5,11 +5,26 @@ if (isset($_POST['category'])) {
     $category = $_POST['category'];
 
     // Use a prepared statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT products.*, categories.category_name 
-                            FROM products 
-                            LEFT JOIN categories ON products.category_id = categories.category_id
-                            WHERE categories.category_name = ?");
-    $stmt->bind_param("s", $category);
+    if ($category === "") {
+        // If "Л═└Л╡╢" (all) category is selected, retrieve all products
+        $sql = "SELECT products.*, categories.category_name 
+                FROM products 
+                LEFT JOIN categories ON products.category_id = categories.category_id";
+    } else {
+        // If a specific category is selected, filter by that category
+        $sql = "SELECT products.*, categories.category_name 
+                FROM products 
+                LEFT JOIN categories ON products.category_id = categories.category_id
+                WHERE categories.category_id = ?";
+    }
+
+    $stmt = $conn->prepare($sql);
+
+    if ($category !== "") {
+        // Only bind parameter if a specific category is selected
+        $stmt->bind_param("i", $category);
+    }
+
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -17,30 +32,13 @@ if (isset($_POST['category'])) {
     while ($row = $result->fetch_assoc()) {
         echo "<tr>";
         echo "<td>{$row['product_name']}</td>";
-        echo "<td>{$row['price']}©Ь</td>";
+        echo "<td>{$row['price']}Л⌡░</td>";
         echo "<td>{$row['stock_quantity']}</td>";
         echo "<td>{$row['category_name']}</td>";
-        echo "<td><a class='order-button' href='#'>аж╧╝го╠Б</a></td>";
+        echo "<td><a class='order-button' href='#'>Лё╪К╛╦М∙≤Й╦╟</a></td>";
         echo "</tr>";
     }
 
     $stmt->close();
-} else {
-    // If no category is provided, return all products (similar to the initial page load)
-    $sql = "SELECT products.*, categories.category_name 
-            FROM products 
-            LEFT JOIN categories ON products.category_id = categories.category_id";
-    $result = $conn->query($sql);
-
-    // Generate HTML for all products
-    while ($row = $result->fetch_assoc()) {
-        echo "<tr>";
-        echo "<td>{$row['product_name']}</td>";
-        echo "<td>{$row['price']}©Ь</td>";
-        echo "<td>{$row['stock_quantity']}</td>";
-        echo "<td>{$row['category_name']}</td>";
-        echo "<td><a class='order-button' href='#'>аж╧╝го╠Б</a></td>";
-        echo "</tr>";
-    }
 }
 ?>
