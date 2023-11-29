@@ -9,14 +9,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $quantity = $_POST['quantity'];
 
         // Check if a record already exists for the user and product
-        $existingStmt = $conn->prepare("SELECT * FROM orders WHERE userid = ? AND product_id = ?");
+        $existingStmt = $conn->prepare("SELECT * FROM cartlist WHERE userid = ? AND product_id = ?");
         $existingStmt->bind_param("si", $userid, $product_id);
         $existingStmt->execute();
         $existingResult = $existingStmt->get_result();
 
         if ($existingResult->num_rows > 0) {
             // If the record exists, update the quantity
-            $updateStmt = $conn->prepare("UPDATE orders SET quantity = quantity + ? WHERE userid = ? AND product_id = ?");
+            $updateStmt = $conn->prepare("UPDATE cartlist SET quantity = quantity + ? WHERE userid = ? AND product_id = ?");
             $updateStmt->bind_param("isi", $quantity, $userid, $product_id);
 
             if ($updateStmt->execute()) {
@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $updateStmt->close();
         } else {
             // If the record does not exist, insert a new record
-            $insertStmt = $conn->prepare("INSERT INTO orders(userid, product_id, quantity) VALUES (?, ?, ?)");
+            $insertStmt = $conn->prepare("INSERT INTO cartlist(userid, product_id, quantity) VALUES (?, ?, ?)");
             $insertStmt->bind_param("sii", $userid, $product_id, $quantity);
 
             if ($insertStmt->execute()) {
