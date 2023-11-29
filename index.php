@@ -39,7 +39,7 @@ $result = $conn->query($sql);
     <ul>
         <li><a href="#">홈</a></li>
         <li><a href="#">서비스</a></li>
-        <li><a href="#">문의</a></li>
+        <li><a href="#">장바구니</a></li>
         <?php if (isset($_SESSION["userid"])) { ?>
             <li><a href="<?php echo $button_action; ?>"><?php echo $button_label; ?></a></li>
             <li><?php echo $welcome_message; ?></li>
@@ -97,7 +97,7 @@ $result = $conn->query($sql);
                 echo "<td>{$row['price']}원</td>";
                 echo "<td>{$row['stock_quantity']}</td>";
                 echo "<td>{$row['category_name']}</td>";
-                echo "<td><a class='order-button' href='#'>주문하기</a></td>";
+                echo "<td><a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>주문하기</a></td>";
                 echo "</tr>";
             }
             ?>
@@ -106,22 +106,48 @@ $result = $conn->query($sql);
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
-    function applyCategoryFilter() {
-        var categoryName = document.getElementById("categoryFilter").value;
+ function applyCategoryFilter() {
+    var categoryName = document.getElementById("categoryFilter").value;
 
-        // Use AJAX to fetch updated product data
-        $.ajax({
-            type: "POST",
-            url: "filter_products.php",
-            data: { category: categoryName },
-            success: function (data) {
-                // Replace the tbody content with the updated product data
-                $("#productTable tbody").html(data);
-            },
-            error: function (xhr, status, error) {
-                console.error('Error:', error);
-            }
-        });
+    // Include the session ID in the data
+    var sessionId = "<?php echo session_id(); ?>";
+
+    // Use AJAX to fetch updated product data
+    $.ajax({
+        type: "POST",
+        url: "filter_products.php",
+        data: { category: categoryName, PHPSESSID: sessionId },
+        success: function (data) {
+            // Replace the tbody content with the updated product data
+            $("#productTable tbody").html(data);
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);
+        }
+    });
+}
+
+    function orderProduct(productId) {
+        // Check if the user is logged in
+        <?php if (isset($_SESSION["userid"])) { ?>
+            var userId = "<?php echo $_SESSION["userid"]; ?>";
+
+            // Use AJAX to save the order in the user_products table
+            $.ajax({
+                type: "POST",
+                url: "save_order.php", // Replace with the actual PHP script to save the order
+                data: { userid: userId, product_id: productId },
+                success: function (data) {
+                    alert("주문이 성공적으로 저장되었습니다!");
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        <?php } else { ?>
+            // Redirect the user to the login page if not logged in
+            window.location.href = "login.php";
+        <?php } ?>
     }
 </script>
 
