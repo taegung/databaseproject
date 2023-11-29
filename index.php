@@ -30,77 +30,8 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>메인 화면</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        nav {
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
-        }
-
-        nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: space-around;
-        }
-
-        nav ul li {
-            display: inline;
-            background-color: #808080; /* Gray background color */
-            padding: 10px;
-            border-radius: 5px;
-            margin: 0 5px;
-        }
-
-        nav ul li a {
-            text-decoration: none;
-            color: #fff;
-        }
-
-        div {
-            margin: 20px;
-        }
-
-        h2 {
-            color: #333;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #333;
-            color: #fff;
-        }
-
-        .order-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <link href="a.css" rel="stylesheet" type="text/css" />
+    
 </head>
 <body>
 
@@ -122,23 +53,50 @@ $result = $conn->query($sql);
 <!-- 상품 목록 표시 -->
 <div>
     <h2>상품 목록</h2>
-    <table>
+
+    <!-- 카테고리 필터링 버튼 -->
+    <div>
+        <label>카테고리 선택:</label>
+        <select id="categoryFilter">
+            <option value="">전체</option>
+            <?php
+            // 카테고리 목록 출력
+            $categoryQuery = "SELECT * FROM categories";
+            $categoryResult = $conn->query($categoryQuery);
+
+            while ($categoryRow = $categoryResult->fetch_assoc()) {
+                echo "<option value='{$categoryRow['category_id']}'>{$categoryRow['category_name']}</option>";
+            }
+            ?>
+        </select>
+        <button onclick="applyCategoryFilter()">적용</button>
+    </div>
+
+    <!-- 상품 목록 테이블 -->
+    <table id="productTable">
         <thead>
             <tr>
                 <th>상품명</th>
                 <th>가격</th>
                 <th>재고량</th>
+                <th>카테고리</th>
                 <th>주문하기</th>
             </tr>
         </thead>
         <tbody>
             <?php
             // 상품 목록 출력
+            $sql = "SELECT products.*, categories.category_name 
+                    FROM products 
+                    LEFT JOIN categories ON products.category_id = categories.category_id";
+            $result = $conn->query($sql);
+
             while ($row = $result->fetch_assoc()) {
                 echo "<tr>";
                 echo "<td>{$row['product_name']}</td>";
                 echo "<td>{$row['price']}원</td>";
                 echo "<td>{$row['stock_quantity']}</td>";
+                echo "<td>{$row['category_name']}</td>";
                 echo "<td><a class='order-button' href='#'>주문하기</a></td>";
                 echo "</tr>";
             }
@@ -146,6 +104,30 @@ $result = $conn->query($sql);
         </tbody>
     </table>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+    function applyCategoryFilter() {
+        var categoryName = document.getElementById("categoryFilter").value;
+
+        // Use AJAX to fetch updated product data
+        $.ajax({
+            type: "POST",
+            url: "filter_products.php",
+            data: { category: categoryName },
+            success: function (data) {
+                // Replace the tbody content with the updated product data
+                $("#productTable tbody").html(data);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+</script>
+
+
+
+
 
 </body>
 </html>
