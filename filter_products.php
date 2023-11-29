@@ -5,7 +5,6 @@ if (isset($_POST['PHPSESSID'])) {
 }
 session_start();
 
-
 // Initialize a variable to check if the user is logged in
 $isLoggedIn = isset($_SESSION["userid"]);
 
@@ -44,12 +43,14 @@ if (isset($_POST['category'])) {
         echo "<td>{$row['stock_quantity']}</td>";
         echo "<td>{$row['category_name']}</td>";
 
-        // Check if the user is logged in before displaying the order button
-        if ($isLoggedIn) {
-            echo "<td><a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>주문하기</a></td>";
-        } else {
-            echo "<td>로그인 필요</td>";
-        }
+       
+            echo "<td>";
+            echo "<input type='number' id='quantity{$row['product_id']}' placeholder='수량' />";
+            echo "</td>";
+            echo "<td>";
+            echo "<a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>주문하기</a>";
+            echo "</td>";
+        
 
         echo "</tr>";
     }
@@ -62,6 +63,7 @@ if (isset($_POST['category'])) {
     function orderProduct(productId) {
         // Check if the user is logged in
         var isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+        var quantity = $("#quantity" + productId).val();
 
         if (isLoggedIn) {
             var userId = "<?php echo $_SESSION["userid"]; ?>";
@@ -70,7 +72,7 @@ if (isset($_POST['category'])) {
             $.ajax({
                 type: "POST",
                 url: "save_order.php", // Replace with the actual PHP script to save the order
-                data: { userid: userId, product_id: productId },
+                data: { userid: userId, product_id: productId, quantity: quantity },
                 success: function (data) {
                     alert("주문이 성공적으로 저장되었습니다!");
                 },

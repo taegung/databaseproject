@@ -73,36 +73,40 @@ $result = $conn->query($sql);
     </div>
 
     <!-- 상품 목록 테이블 -->
-    <table id="productTable">
-        <thead>
-            <tr>
-                <th>상품명</th>
-                <th>가격</th>
-                <th>재고량</th>
-                <th>카테고리</th>
-                <th>주문하기</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            // 상품 목록 출력
-            $sql = "SELECT products.*, categories.category_name 
-                    FROM products 
-                    LEFT JOIN categories ON products.category_id = categories.category_id";
-            $result = $conn->query($sql);
+<!-- 상품 목록 테이블 -->
+<table id="productTable">
+    <thead>
+        <tr>
+            <th>상품명</th>
+            <th>가격</th>
+            <th>재고량</th>
+            <th>카테고리</th>
+            <th>수량</th> <!-- Added column for quantity -->
+            <th>주문하기</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        // 상품 목록 출력
+        $sql = "SELECT products.*, categories.category_name 
+                FROM products 
+                LEFT JOIN categories ON products.category_id = categories.category_id";
+        $result = $conn->query($sql);
 
-            while ($row = $result->fetch_assoc()) {
-                echo "<tr>";
-                echo "<td>{$row['product_name']}</td>";
-                echo "<td>{$row['price']}원</td>";
-                echo "<td>{$row['stock_quantity']}</td>";
-                echo "<td>{$row['category_name']}</td>";
-                echo "<td><a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>주문하기</a></td>";
-                echo "</tr>";
-            }
-            ?>
-        </tbody>
-    </table>
+        while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
+            echo "<td>{$row['product_name']}</td>";
+            echo "<td>{$row['price']}원</td>";
+            echo "<td>{$row['stock_quantity']}</td>";
+            echo "<td>{$row['category_name']}</td>";
+            echo "<td><input type='number' id='quantity{$row['product_id']}' value='1' min='1'></td>"; // Quantity input
+            echo "<td><a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>주문하기</a></td>";
+            echo "</tr>";
+        }
+        ?>
+    </tbody>
+</table>
+
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
@@ -127,28 +131,31 @@ $result = $conn->query($sql);
     });
 }
 
-    function orderProduct(productId) {
-        // Check if the user is logged in
-        <?php if (isset($_SESSION["userid"])) { ?>
-            var userId = "<?php echo $_SESSION["userid"]; ?>";
+  function orderProduct(productId) {
+    // Check if the user is logged in
+    <?php if (isset($_SESSION["userid"])) { ?>
+        var userId = "<?php echo $_SESSION["userid"]; ?>";
+        
+        // Get the quantity from the input field
+        var quantity = $("#quantity" + productId).val();
 
-            // Use AJAX to save the order in the user_products table
-            $.ajax({
-                type: "POST",
-                url: "save_order.php", // Replace with the actual PHP script to save the order
-                data: { userid: userId, product_id: productId },
-                success: function (data) {
-                    alert("주문이 성공적으로 저장되었습니다!");
-                },
-                error: function (xhr, status, error) {
-                    console.error('Error:', error);
-                }
-            });
-        <?php } else { ?>
-            // Redirect the user to the login page if not logged in
-            window.location.href = "login.php";
-        <?php } ?>
-    }
+        // Use AJAX to save the order in the user_products table
+        $.ajax({
+            type: "POST",
+            url: "save_order.php", // Replace with the actual PHP script to save the order
+            data: { userid: userId, product_id: productId, quantity: quantity },
+            success: function (data) {
+                alert("주문이 성공적으로 저장되었습니다!");
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    <?php } else { ?>
+        // Redirect the user to the login page if not logged in
+        window.location.href = "login.php";
+    <?php } ?>
+  }
 </script>
 
 

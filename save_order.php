@@ -2,14 +2,15 @@
 include 'config.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Check if the userid and product_id are set in the POST data
-    if (isset($_POST['userid']) && isset($_POST['product_id'])) {
+    // Check if the userid, product_id, and quantity are set in the POST data
+    if (isset($_POST['userid']) && isset($_POST['product_id']) && isset($_POST['quantity'])) {
         $userid = $_POST['userid'];
         $product_id = $_POST['product_id'];
+        $quantity = $_POST['quantity'];
 
         // Use a prepared statement to prevent SQL injection
-        $stmt = $conn->prepare("INSERT INTO orders(userid, product_id) VALUES (?, ?)");
-        $stmt->bind_param("si", $userid, $product_id);
+        $stmt = $conn->prepare("INSERT INTO orders(userid, product_id, quantity) VALUES (?, ?, ?)");
+        $stmt->bind_param("sii", $userid, $product_id, $quantity);
 
         // Execute the statement
         if ($stmt->execute()) {
@@ -22,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt->close();
     } else {
-        // Return an error response if userid or product_id is not set
+        // Return an error response if userid, product_id, or quantity is not set
         echo json_encode(["success" => false, "error" => "Invalid request"]);
     }
 } else {
