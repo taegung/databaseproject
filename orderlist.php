@@ -38,7 +38,8 @@ if (isset($_SESSION["userid"])) {
         echo "</table>";
 
         // Display the "주문하기" button
-        echo "<button onclick='placeOrder()'>주문하기</button>";
+        // Pass cart items to JavaScript
+        echo "<button onclick='placeOrder(" . json_encode($result->fetch_all(MYSQLI_ASSOC)) . ")'>주문하기</button>";
     } else {
         echo "장바구니가 비어있습니다.";
     }
@@ -48,6 +49,7 @@ if (isset($_SESSION["userid"])) {
     echo "로그인이 필요합니다.";
 }
 ?>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
     function cancelOrder(userProductId) {
@@ -70,16 +72,17 @@ if (isset($_SESSION["userid"])) {
         }
     }
 
-    function placeOrder() {
+    function placeOrder(cartItems) {
         // Use AJAX to place the order
         $.ajax({
             type: "POST",
-            url: "place_order.php", // Create this PHP script to handle order placement
+            url: "place_order.php",
+            data: { items: cartItems }, // Pass the cart items to the server
             success: function (data) {
                 // Handle the success response as needed
                 // For example, show a confirmation message and redirect to a thank you page
                 alert("주문이 성공적으로 완료되었습니다!");
-                window.location.href = "thank_you.php";
+                window.location.href = "index.php";
             },
             error: function (xhr, status, error) {
                 console.error('Error:', error);
