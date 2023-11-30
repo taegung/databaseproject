@@ -1,7 +1,19 @@
 <?php
 include 'config.php';
 session_start();
+?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장바구니</title>
+    <link rel="stylesheet" href="a.css">
+</head>
+<body>
+
+<?php
 if (isset($_SESSION["userid"])) {
     // Fetch orders for the logged-in user
     $userid = $_SESSION["userid"];
@@ -21,6 +33,7 @@ if (isset($_SESSION["userid"])) {
         echo "<tr><th>제품명</th><th>수량</th><th>가격</th><th>취소</th></tr>";
 
         $totalPrice = 0;
+        $cartItems = array(); // Initialize an array to store cart items
 
         while ($row = $result->fetch_assoc()) {
             echo "<tr>";
@@ -32,14 +45,14 @@ if (isset($_SESSION["userid"])) {
             echo "</tr>";
 
             $totalPrice += $productPrice;
-        }
 
+            // Add item to cartItems array
+            $cartItems[] = $row;
+        }
+        echo "<button onclick='placeOrder()'>상품 전체 주문</button>";
         echo "<tr><td colspan='3'>총 가격</td><td>{$totalPrice}원</td></tr>";
         echo "</table>";
 
-        // Display the "주문하기" button
-        // Pass cart items to JavaScript
-        echo "<button onclick='placeOrder(" . json_encode($result->fetch_all(MYSQLI_ASSOC)) . ")'>주문하기</button>";
     } else {
         echo "장바구니가 비어있습니다.";
     }
@@ -72,21 +85,25 @@ if (isset($_SESSION["userid"])) {
         }
     }
 
-    function placeOrder(cartItems) {
-        // Use AJAX to place the order
-        $.ajax({
-            type: "POST",
-            url: "place_order.php",
-            data: { items: cartItems }, // Pass the cart items to the server
-            success: function (data) {
-                // Handle the success response as needed
-                // For example, show a confirmation message and redirect to a thank you page
-                alert("주문이 성공적으로 완료되었습니다!");
-                window.location.href = "index.php";
-            },
-            error: function (xhr, status, error) {
-                console.error('Error:', error);
-            }
-        });
+    function placeOrder() {
+        var confirmation = confirm("정말로 상품을 주문하시겠습니까?");
+        
+        if (confirmation) {
+            // Use AJAX to place the order
+            $.ajax({
+                type: "POST",
+                url: "place_order.php", // Create this PHP script to handle order placement
+                success: function (data) {
+                    // If the order is successful, redirect to a.php
+                    window.location.href = "a.php";
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
     }
 </script>
+
+</body>
+</html>

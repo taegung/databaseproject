@@ -38,11 +38,12 @@ $result = $conn->query($sql);
 <nav>
     <ul>
         <li><a href="#">홈</a></li>
-        <li><a href="#">서비스</a></li>
+        
         <?php if (isset($_SESSION["userid"])) { ?>
             <li><a href="<?php echo $button_action; ?>"><?php echo $button_label; ?></a></li>
             <li><?php echo $welcome_message; ?></li>
             <li><a href="orderlist.php">장바구니</a></li>
+            <li><a href="a.php">주문목록</a></li>
         <?php } else { ?>
             <li><a href="signup.php">회원가입</a></li>
             <li><a href="login.php">로그인</a></li>
