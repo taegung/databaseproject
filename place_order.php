@@ -6,56 +6,73 @@ if (isset($_SESSION["userid"])) {
     $userid = $_SESSION["userid"];
 
     // Fetch cart items for the logged-in user
-    $sql = "SELECT cartlist.*, products.price, products.stock_quantity, products.sell_quantity
-            FROM cartlist
-            INNER JOIN products ON cartlist.product_id = products.product_id
-            WHERE cartlist.userid = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $userid);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $cartSql = "SELECT cartlist.*, products.price, products.stock_quantity, products.sell_quantity
+                 FROM cartlist
+                 INNER JOIN products ON cartlist.product_id = products.product_id
+                 WHERE cartlist.userid = ?";
+    $cartStmt = $conn->prepare($cartSql);
+    $cartStmt->bind_param("s", $userid);
+    $cartStmt->execute();
+    $cartResult = $cartStmt->get_result();
 
-    // Initialize an array to store updates to stock and sell quantities
-    $updates = array();
+    // Initialize variables for order insertion
+    $orderSql = "INSERT INTO orders (userid) VALUES (?)";
+    $orderStmt = $conn->prepare($orderSql);
+    $orderStmt->bind_param("s", $userid);
+    $orderStmt->execute();
 
-    // Insert cart items into the orders table and update stock and sell quantities
-    while ($row = $result->fetch_assoc()) {
-        $product_id = $row['product_id'];
-        $quantity = $row['quantity'];
-        $product_price = $row['price'];
-        $total_price = $quantity * $product_price;
+    // Get the order ID of the newly inserted order
+    $orderId = $conn->insert_id;
 
-        // Update stock and sell quantities
-        $newStockQuantity = $row['stock_quantity'] - $quantity;
-        $newSellQuantity = $row['sell_quantity'] + $quantity;
-        $updates[$product_id] = array('stock_quantity' => $newStockQuantity, 'sell_quantity' => $newSellQuantity);
+    // Prepare statement for inserting into order_details
+    $orderDetailsSql = "INSERT INTO order_details (order_id, product_id, quantity, total_price) VALUES (?, ?, ?, ?)";
+    $orderDetailsStmt = $conn->prepare($orderDetailsSql);
 
-        // Insert into orders table
-        $insertSql = "INSERT INTO orders (userid, product_id, quantity, total_price)
-                      VALUES (?, ?, ?, ?)";
-        $insertStmt = $conn->prepare($insertSql);
-        $insertStmt->bind_param("siii", $userid, $product_id, $quantity, $total_price);
-        $insertStmt->execute();
-        $insertStmt->close();
+    // Start a transaction to ensure data consistency
+    $conn->begin_transaction();
+
+    try {
+        // Iterate through cart items and insert into order_details
+        while ($cartRow = $cartResult->fetch_assoc()) {
+            $product_id = $cartRow['product_id'];
+            $quantity = $cartRow['quantity'];
+            $product_price = $cartRow['price'];
+            $total_price = $quantity * $product_price;
+
+            // Insert into order_details
+            $orderDetailsStmt->bind_param("iiii", $orderId, $product_id, $quantity, $total_price);
+            $orderDetailsStmt->execute();
+
+            // Update product sell quantity and stock quantity
+            $newStockQuantity = $cartRow['stock_quantity'] - $quantity;
+            $newSellQuantity = $cartRow['sell_quantity'] + $quantity;
+
+            $updateProductSql = "UPDATE products SET stock_quantity = ?, sell_quantity = ? WHERE product_id = ?";
+            $updateProductStmt = $conn->prepare($updateProductSql);
+            $updateProductStmt->bind_param("iii", $newStockQuantity, $newSellQuantity, $product_id);
+            $updateProductStmt->execute();
+        }
+
+        // Commit the transaction
+        $conn->commit();
+
+        // Clear the user's cart after placing the order
+        $clearCartSql = "DELETE FROM cartlist WHERE userid = ?";
+        $clearCartStmt = $conn->prepare($clearCartSql);
+        $clearCartStmt->bind_param("s", $userid);
+        $clearCartStmt->execute();
+        $clearCartStmt->close();
+
+        echo "주문이 완료되었습니다.";
+    } catch (Exception $e) {
+        // Rollback the transaction if an error occurs
+        $conn->rollback();
+        echo "주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.";
     }
 
-    // Update product stock and sell quantities
-    foreach ($updates as $product_id => $values) {
-        $updateSql = "UPDATE products SET stock_quantity = ?, sell_quantity = ? WHERE product_id = ?";
-        $updateStmt = $conn->prepare($updateSql);
-        $updateStmt->bind_param("iii", $values['stock_quantity'], $values['sell_quantity'], $product_id);
-        $updateStmt->execute();
-        $updateStmt->close();
-    }
-
-    // Clear the user's cart after placing the order
-    $clearCartSql = "DELETE FROM cartlist WHERE userid = ?";
-    $clearCartStmt = $conn->prepare($clearCartSql);
-    $clearCartStmt->bind_param("s", $userid);
-    $clearCartStmt->execute();
-    $clearCartStmt->close();
-
-    echo "주문이 완료되었습니다.";
+    $orderStmt->close();
+    $orderDetailsStmt->close();
+    $cartStmt->close();
 } else {
     echo "로그인이 필요합니다.";
 }

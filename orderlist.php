@@ -41,7 +41,7 @@ if (isset($_SESSION["userid"])) {
             echo "<td>{$row['quantity']}</td>";
             $productPrice = $row['price'] * $row['quantity'];
             echo "<td>{$productPrice}원</td>";
-            echo "<td><button onclick='cancelOrder({$row['user_product_id']})'>장바구니 취소</button></td>";
+            echo "<td><button onclick='cancelOrder({$row['cartlist_id']})'>장바구니 취소</button></td>";
             echo "</tr>";
 
             $totalPrice += $productPrice;
@@ -65,7 +65,7 @@ if (isset($_SESSION["userid"])) {
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
-    function cancelOrder(userProductId) {
+    function cancelOrder(cartlistId) {
         var confirmation = confirm("정말로 장바구니에서 제거하시겠습니까?");
         
         if (confirmation) {
@@ -73,7 +73,7 @@ if (isset($_SESSION["userid"])) {
             $.ajax({
                 type: "POST",
                 url: "cancel_order.php", // Replace with the actual PHP script to cancel the order
-                data: { user_product_id: userProductId },
+                data: { cartlist_id: cartlistId },
                 success: function (data) {
                     // Reload the page to reflect the changes
                     location.reload();

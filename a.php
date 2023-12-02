@@ -17,10 +17,11 @@ session_start();
 if (isset($_SESSION["userid"])) {
     $userid = $_SESSION["userid"];
 
-    // Fetch orders for the logged-in user
-    $sql = "SELECT orders.*, products.product_name
-            FROM orders
-            INNER JOIN products ON orders.product_id = products.product_id
+    // Fetch orders for the logged-in user through order_details
+    $sql = "SELECT order_details.*, products.product_name, orders.order_date
+            FROM order_details
+            INNER JOIN orders ON order_details.order_id = orders.order_id
+            INNER JOIN products ON order_details.product_id = products.product_id
             WHERE orders.userid = ?";
     
     $stmt = $conn->prepare($sql);

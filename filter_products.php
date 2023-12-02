@@ -71,7 +71,7 @@ if (isset($_POST['category'])) {
             // Use AJAX to save the order in the user_products table
             $.ajax({
                 type: "POST",
-                url: "save_order.php", // Replace with the actual PHP script to save the order
+                url: "save_cart.php", // Replace with the actual PHP script to save the order
                 data: { userid: userId, product_id: productId, quantity: quantity },
                 success: function (data) {
                     alert("주문이 성공적으로 저장되었습니다!");
