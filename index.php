@@ -107,6 +107,46 @@ $result = $conn->query($sql);
         ?>
     </tbody>
 </table>
+<div>
+    <h2>인기상품 순위</h2>
+    <table id="popularProductTable">
+        <thead>
+            <tr>
+                <th>순위</th>
+                <th>상품명</th>
+                <th>주문량</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            // Query to get popular products based on order quantity
+            $popularProductsQuery = "
+            SELECT
+            RANK() OVER (ORDER BY products.sell_quantity DESC) AS product_rank,
+            products.product_name,
+            products.sell_quantity AS total_quantity
+        FROM
+            products
+        ORDER BY
+            total_quantity DESC
+        LIMIT 10"; // Adjust the LIMIT as needed
+
+            $popularProductsResult = $conn->query($popularProductsQuery);
+            
+            $rank = 1;
+            while ($popularProduct = $popularProductsResult->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>{$rank}</td>";
+                echo "<td>{$popularProduct['product_name']}</td>";
+                echo "<td>{$popularProduct['total_quantity']}</td>";
+                echo "</tr>";
+                $rank++;
+            }
+            ?>
+        </tbody>
+    </table>
+</div>
+
 
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -143,7 +183,7 @@ $result = $conn->query($sql);
         // Use AJAX to save the order in the user_products table
         $.ajax({
             type: "POST",
-            url: "save_order.php", // Replace with the actual PHP script to save the order
+            url: "save_cart.php", // Replace with the actual PHP script to save the order
             data: { userid: userId, product_id: productId, quantity: quantity },
             success: function (data) {
                 alert("주문이 성공적으로 저장되었습니다!");

@@ -6,7 +6,7 @@ if (isset($_SESSION["userid"])) {
     $userid = $_SESSION["userid"];
 
     // Fetch cart items for the logged-in user
-    $sql = "SELECT cartlist.*, products.price, products.stock_quantity
+    $sql = "SELECT cartlist.*, products.price, products.stock_quantity, products.sell_quantity
             FROM cartlist
             INNER JOIN products ON cartlist.product_id = products.product_id
             WHERE cartlist.userid = ?";
@@ -15,19 +15,20 @@ if (isset($_SESSION["userid"])) {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Initialize an array to store updates to stock quantities
-    $stockUpdates = array();
+    // Initialize an array to store updates to stock and sell quantities
+    $updates = array();
 
-    // Insert cart items into the orders table and update stock quantities
+    // Insert cart items into the orders table and update stock and sell quantities
     while ($row = $result->fetch_assoc()) {
         $product_id = $row['product_id'];
         $quantity = $row['quantity'];
         $product_price = $row['price'];
         $total_price = $quantity * $product_price;
 
-        // Update stock quantity
+        // Update stock and sell quantities
         $newStockQuantity = $row['stock_quantity'] - $quantity;
-        $stockUpdates[$product_id] = $newStockQuantity;
+        $newSellQuantity = $row['sell_quantity'] + $quantity;
+        $updates[$product_id] = array('stock_quantity' => $newStockQuantity, 'sell_quantity' => $newSellQuantity);
 
         // Insert into orders table
         $insertSql = "INSERT INTO orders (userid, product_id, quantity, total_price)
@@ -38,11 +39,11 @@ if (isset($_SESSION["userid"])) {
         $insertStmt->close();
     }
 
-    // Update product stock quantities
-    foreach ($stockUpdates as $product_id => $newStockQuantity) {
-        $updateSql = "UPDATE products SET stock_quantity = ? WHERE product_id = ?";
+    // Update product stock and sell quantities
+    foreach ($updates as $product_id => $values) {
+        $updateSql = "UPDATE products SET stock_quantity = ?, sell_quantity = ? WHERE product_id = ?";
         $updateStmt = $conn->prepare($updateSql);
-        $updateStmt->bind_param("ii", $newStockQuantity, $product_id);
+        $updateStmt->bind_param("iii", $values['stock_quantity'], $values['sell_quantity'], $product_id);
         $updateStmt->execute();
         $updateStmt->close();
     }
