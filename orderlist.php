@@ -9,7 +9,7 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>장바구니</title>
-    <link rel="stylesheet" href="a.css">
+    <link href="a.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
@@ -54,7 +54,17 @@ if (isset($_SESSION["userid"])) {
         echo "</table>";
 
     } else {
-        echo "장바구니가 비어있습니다.";
+        echo "<div style='text-align: center; margin-top: 50px;'>";
+        echo "<h2 style='color: #555;'>장바구니가 비어있습니다.</h2>";
+        echo "<td><a class='return-button' href='#' onclick='goToIndex()'>홈으로 돌아가기</a></td>";
+        echo "</div>";
+
+        // 아래에 있는 JavaScript 함수로 인덱스 페이지로 이동
+        echo "<script>
+                function goToIndex() {
+                    window.location.href = 'index.php';
+                }
+              </script>";
     }
 
     $stmt->close();

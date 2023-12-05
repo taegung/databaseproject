@@ -68,3 +68,17 @@ th {
   border-radius: 5px;
   cursor: pointer;
 }
+.return-button {
+  background-color: #3498db;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.return-button:hover {
+  background-color: #2980b9;
+}

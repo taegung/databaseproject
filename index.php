@@ -37,7 +37,7 @@ $result = $conn->query($sql);
 
 <nav>
     <ul>
-        <li><a href="#">홈</a></li>
+        <li><a href="index.php">홈</a></li>
         
         <?php if (isset($_SESSION["userid"])) { ?>
             <li><a href="<?php echo $button_action; ?>"><?php echo $button_label; ?></a></li>
