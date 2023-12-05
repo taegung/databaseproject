@@ -48,7 +48,7 @@ if (isset($_POST['category'])) {
             echo "<input type='number' id='quantity{$row['product_id']}' placeholder='수량' />";
             echo "</td>";
             echo "<td>";
-            echo "<a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>주문하기</a>";
+            echo "<a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>장바구니 담기</a>";
             echo "</td>";
         
 
@@ -74,7 +74,7 @@ if (isset($_POST['category'])) {
                 url: "save_cart.php", // Replace with the actual PHP script to save the order
                 data: { userid: userId, product_id: productId, quantity: quantity },
                 success: function (data) {
-                    alert("주문이 성공적으로 저장되었습니다!");
+                    alert("장바구니에 담았습니다");
                 },
                 error: function (xhr, status, error) {
                     console.error('Error:', error);

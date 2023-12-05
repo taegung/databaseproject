@@ -42,7 +42,7 @@ $conn->close();
 <h2>로그인</h2>
 
 <form method="post" action="<?php echo $_SERVER["PHP_SELF"];?>">
-    사용자명: <input type="text" name="userid"><br>
+    사용자ID: <input type="text" name="userid"><br>
     비밀번호: <input type="password" name="password"><br>
     <input type="submit" value="로그인">
 </form>

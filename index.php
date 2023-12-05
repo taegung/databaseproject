@@ -2,25 +2,24 @@
 session_start();
 include 'config.php';
 
-// 로그아웃 처리
 if (isset($_GET["logout"])) {
-    session_destroy(); // 세션 파기
-    header("Location: index.php"); // 로그인 페이지로 이동
+    session_destroy(); 
+    header("Location: index.php");
     exit();
 }
 
-// 로그인 여부 확인
+
 if (isset($_SESSION["userid"])) {
     $welcome_message = "{$_SESSION["userid"]}님!";
     $button_label = "로그아웃";
-    $button_action = "index.php?logout=1"; // 로그아웃 처리 링크
+    $button_action = "index.php?logout=1"; 
 } else {
     $welcome_message = "로그인이 필요합니다.";
     $button_label = "로그인";
-    $button_action = "login.php"; // 로그인 페이지로 이동
+    $button_action = "login.php"; 
 }
 
-// 데이터베이스에서 모든 상품 불러오기
+
 $sql = "SELECT * FROM products";
 $result = $conn->query($sql);
 ?>
@@ -51,17 +50,16 @@ $result = $conn->query($sql);
     </ul>
 </nav>
 
-<!-- 상품 목록 표시 -->
+
 <div>
     <h2>상품 목록</h2>
 
-    <!-- 카테고리 필터링 버튼 -->
     <div>
         <label>카테고리 선택:</label>
         <select id="categoryFilter">
             <option value="">전체</option>
             <?php
-            // 카테고리 목록 출력
+      
             $categoryQuery = "SELECT * FROM categories";
             $categoryResult = $conn->query($categoryQuery);
 
@@ -73,8 +71,7 @@ $result = $conn->query($sql);
         <button onclick="applyCategoryFilter()">적용</button>
     </div>
 
-    <!-- 상품 목록 테이블 -->
-<!-- 상품 목록 테이블 -->
+
 <table id="productTable">
     <thead>
         <tr>
@@ -82,13 +79,13 @@ $result = $conn->query($sql);
             <th>가격</th>
             <th>재고량</th>
             <th>카테고리</th>
-            <th>수량</th> <!-- Added column for quantity -->
-            <th>주문하기</th>
+            <th>수량</th> 
+            <th></th>
         </tr>
     </thead>
     <tbody>
         <?php
-        // 상품 목록 출력
+     
         $sql = "SELECT products.*, categories.category_name 
                 FROM products 
                 LEFT JOIN categories ON products.category_id = categories.category_id";
@@ -100,7 +97,7 @@ $result = $conn->query($sql);
             echo "<td>{$row['price']}원</td>";
             echo "<td>{$row['stock_quantity']}</td>";
             echo "<td>{$row['category_name']}</td>";
-            echo "<td><input type='number' id='quantity{$row['product_id']}' value='1' min='1'></td>"; // Quantity input
+            echo "<td><input type='number' id='quantity{$row['product_id']}' value='1' min='1'></td>";
             echo "<td><a class='order-button' href='#' onclick='orderProduct({$row['product_id']})'>장바구니담기</a></td>";
             echo "</tr>";
         }
@@ -119,7 +116,7 @@ $result = $conn->query($sql);
         </thead>
         <tbody>
             <?php
-            // Query to get popular products based on order quantity
+          
             $popularProductsQuery = "
             SELECT
             RANK() OVER (ORDER BY products.sell_quantity DESC) AS product_rank,
@@ -129,7 +126,7 @@ $result = $conn->query($sql);
             products
         ORDER BY
             total_quantity DESC
-        LIMIT 10"; // Adjust the LIMIT as needed
+        LIMIT 5"; // Adjust the LIMIT as needed
 
             $popularProductsResult = $conn->query($popularProductsQuery);
             

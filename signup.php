@@ -6,12 +6,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $userid = $_POST["userid"];
     $username = $_POST["username"];
     $password = $_POST["password"];
+    $Address = $_POST["useraddress"]; // 추가: 배송지
+    $gender = $_POST["gender"]; // 추가: 성별
 
     // 비밀번호 해싱
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     // 데이터베이스에 데이터 삽입
-    $sql = "INSERT INTO user (userid, username, password) VALUES ('$userid', '$username', '$hashedPassword')";
+    $sql = "INSERT INTO user (userid, username, password,useraddress, gender) 
+            VALUES ('$userid', '$username', '$hashedPassword', '$Address', '$gender')";
 
     if ($conn->query($sql) === TRUE) {
         echo "회원 가입이 성공적으로 완료되었습니다.";
@@ -40,6 +43,10 @@ $conn->close();
     사용자아이다: <input type="text" name="userid"><br>
     실제 이름: <input type="text" name="username"><br>
     비밀번호: <input type="password" name="password"><br>
+    배송지: <input type="text" name="useraddress"><br> <!-- 추가: 배송지 입력 -->
+    성별: 
+    <input type="radio" name="gender" value="남자"> 남자
+    <input type="radio" name="gender" value="여자"> 여자<br> <!-- 추가: 성별 입력 -->
     <input type="submit" value="회원 가입">
 </form>
 
